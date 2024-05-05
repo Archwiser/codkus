@@ -143,27 +143,35 @@ def execute_code_and_tests(code, test_cases):
     return output
 
 
-def fix_code(task, code, error, llm):
+def fix_code_and_tests(task, code, test_cases, error, llm):
     prompt = f"""
     Task: {task}
     Code:
     ```
     {code}
     ```
+    Test Cases:
+    ```
+    {test_cases}
+    ```
     Error:
     ```
     {error}
     ```
 
-    Please fix the code based on the provided error message. Ensure that the fixed code addresses the error and meets the task requirements.
-    Provide only the fixed code, without any additional explanations or tags.
+    Please fix the code and test cases based on the provided error message. Ensure that the fixed code and test cases address the error and meet the task requirements.
+    Provide the fixed code and test cases separately, without any additional explanations or tags.
     """
-    fixed_code = llm.predict(prompt)
+    fixed_code_and_tests = llm.predict(prompt)
     
-    # Remove any extra triple backticks from the fixed code
-    fixed_code = fixed_code.replace("```", "")
+    # Split the fixed code and test cases
+    fixed_code, fixed_test_cases = fixed_code_and_tests.split("Test Cases:")
     
-    return fixed_code
+    # Remove any extra triple backticks from the fixed code and test cases
+    fixed_code = fixed_code.replace("```", "").strip()
+    fixed_test_cases = fixed_test_cases.replace("```", "").strip()
+    
+    return fixed_code, fixed_test_cases
 
 
 def main():
@@ -200,6 +208,7 @@ def main():
     fixed_code_tooltip = st.session_state.get("fixed_code_tooltip", False)
     code_confirmed = st.session_state.get("code_confirmed", False)
     fixed_code = st.session_state.get("fixed_code", "")
+    fixed_test_cases = st.session_state.get("fixed_test_cases", "")
 
     task = st.text_area("Enter the task:", value=task, height=200)
 
@@ -223,6 +232,7 @@ def main():
             st.session_state["fixed_code_tooltip"] = False
             st.session_state["code_confirmed"] = False
             st.session_state["fixed_code"] = ""
+            st.session_state["fixed_test_cases"] = ""
 
     if generated_code or generated_test_cases:
         col1, col2 = st.columns(2)
@@ -244,28 +254,34 @@ def main():
         st.text(output)
 
         if "Error" in output:
-            st.warning("An error occurred while running the code. Please copy the error message and use the 'Fix Code' button to resolve the issue.")
+            st.warning("An error occurred while running the code. Please copy the error message and use the 'Fix Code and Tests' button to resolve the issue.")
 
     if fixed_code_tooltip:
-        st.info("The code has been fixed. Please re-run the tests to verify the changes.")
+        st.info("The code and tests have been fixed. Please re-run the tests to verify the changes.")
 
     error_message = st.text_area("Error Message", value=error_message, placeholder="Paste the error message here", height=100)
     st.session_state["error_message"] = error_message
 
-    if st.button("Fix Code"):
+    if st.button("Fix Code and Tests"):
         if error_message:
-            fixed_code = fix_code(task, generated_code, error_message, llm)
+            fixed_code, fixed_test_cases = fix_code_and_tests(task, generated_code, generated_test_cases, error_message, llm)
             st.session_state["generated_code"] = fixed_code
+            st.session_state["generated_test_cases"] = fixed_test_cases
             st.session_state["fixed_code"] = fixed_code
-            full_code = f"{fixed_code}\n\n{generated_test_cases}"
+            st.session_state["fixed_test_cases"] = fixed_test_cases
+            full_code = f"{fixed_code}\n\n{fixed_test_cases}"
             st.session_state["full_code"] = full_code
-            st.rerun()  # Force rerun to update the UI immediately
+            st.experimental_rerun()  # Force rerun to update the UI immediately
         else:
-            st.warning("Please provide an error message to fix the code.")
+            st.warning("Please provide an error message to fix the code and tests.")
 
     if fixed_code:
         st.subheader("Fixed Code")
         st.code(fixed_code, language="python")
+
+    if fixed_test_cases:
+        st.subheader("Fixed Test Cases")
+        st.code(fixed_test_cases, language="python")
 
     if st.button("Confirm Code"):
         st.session_state["code_confirmed"] = True
