@@ -16,7 +16,7 @@ Codkus is a web application that utilizes AI to generate high-quality Python cod
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/codkus.git
+   git clone https://github.com/micic-mihajlo/codkus.git
    ```
 
 2. Navigate to the project directory:
