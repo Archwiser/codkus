@@ -258,23 +258,18 @@ def main():
             st.session_state["code_confirmed"] = False
             st.session_state["fixed_code"] = ""
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Generated Code")
-        generated_code_text = st.text_area("Generated Code", value=generated_code, height=300)
-    with col2:
-        st.subheader("Generated Test Cases")
-        generated_test_cases_text = st.text_area("Generated Test Cases", value=generated_test_cases, height=300)
+    if generated_code or generated_test_cases:
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Generated Code")
+            st.code(generated_code, language="python")
+        with col2:
+            st.subheader("Generated Test Cases")
+            st.code(generated_test_cases, language="python")
 
-    if st.button("Update Test Cases"):
-        generated_test_cases = generated_test_cases_text
-        st.session_state["generated_test_cases"] = generated_test_cases
-        full_code = f"{generated_code}\n\n{generated_test_cases}"
-        st.session_state["full_code"] = full_code
-
-    st.subheader("Full Code (Code + Test Cases)")
-    full_code = st.session_state.get("full_code", "")
-    st.code(full_code, language="python")
+        st.subheader("Full Code (Code + Test Cases)")
+        full_code = st.session_state.get("full_code", "")
+        st.code(full_code, language="python")
 
     if st.button("Run Code and Tests"):
         output = execute_code_and_tests(generated_code, generated_test_cases)
@@ -298,7 +293,7 @@ def main():
             st.session_state["fixed_code"] = fixed_code
             full_code = f"{fixed_code}\n\n{generated_test_cases}"
             st.session_state["full_code"] = full_code
-            st.rerun()  # Force rerun to update the UI immediately
+            st.experimental_rerun()  # Force rerun to update the UI immediately
         else:
             st.warning("Please provide an error message to fix the code.")
 
