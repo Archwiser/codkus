@@ -298,7 +298,7 @@ def main():
             st.session_state["fixed_code"] = fixed_code
             full_code = f"{fixed_code}\n\n{generated_test_cases}"
             st.session_state["full_code"] = full_code
-            st.experimental_rerun()  # Force rerun to update the UI immediately
+            st.rerun()  # Force rerun to update the UI immediately
         else:
             st.warning("Please provide an error message to fix the code.")
 
