@@ -6,6 +6,7 @@ import io
 import unittest
 from contextlib import redirect_stdout
 import types
+import re
 
 
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
@@ -164,21 +165,21 @@ def fix_code_and_tests(task, code, test_cases, error, llm):
     """
     fixed_code_and_tests = llm.predict(prompt)
     
-    # Check if the response contains the "Test Cases:" separator
-    if "Test Cases:" in fixed_code_and_tests:
-        # Split the fixed code and test cases
-        fixed_code, fixed_test_cases = fixed_code_and_tests.split("Test Cases:")
-        
-        # Remove any extra triple backticks from the fixed code and test cases
-        fixed_code = fixed_code.replace("```", "").strip()
-        fixed_test_cases = fixed_test_cases.replace("```", "").strip()
+    # Extract the fixed code using a regular expression
+    code_match = re.search(r"```(.*?)```", fixed_code_and_tests, re.DOTALL)
+    if code_match:
+        fixed_code = code_match.group(1).strip()
     else:
-        # If the separator is not found, assume only the code is fixed
-        fixed_code = fixed_code_and_tests.replace("```", "").strip()
+        fixed_code = code
+    
+    # Extract the fixed test cases using a regular expression
+    test_cases_match = re.search(r"```(.*?)```", fixed_code_and_tests[code_match.end():], re.DOTALL)
+    if test_cases_match:
+        fixed_test_cases = test_cases_match.group(1).strip()
+    else:
         fixed_test_cases = test_cases
     
     return fixed_code, fixed_test_cases
-
 def main():
     st.set_page_config(page_title="Codkus", page_icon=":robot_face:")
 
