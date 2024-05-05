@@ -154,20 +154,20 @@ def is_balanced(code):
 
 
 def execute_code_and_tests(code, test_cases):
-    # Combine the code and test cases into a single string
+    # combine the code and test cases into a single string
     full_code = f"{code}\n\n{test_cases}"
 
-    # Redirect stdout to capture the output
+    # redirect stdout to capture the output
     stdout = io.StringIO()
     with redirect_stdout(stdout):
         try:
-            # Create a module dynamically
+            # create a module dynamically
             module = types.ModuleType("test_module")
-            # Execute the code in the module's context
+            # execute the code in the module's context
             exec(full_code, module.__dict__)
-            # Create a test suite from the module
+            # create a test suite from the module
             test_suite = unittest.TestLoader().loadTestsFromModule(module)
-            # Create a test runner and run the tests
+            # create a test runner and run the tests
             test_runner = unittest.TextTestRunner(stream=stdout, verbosity=2)
             test_runner.run(test_suite)
             output = stdout.getvalue()
@@ -194,7 +194,7 @@ def fix_code(task, code, error, llm):
     """
     fixed_code = llm.predict(prompt)
     
-    # Remove any extra triple backticks from the fixed code
+    # remove any extra triple backticks from the fixed code
     fixed_code = fixed_code.replace("```", "").strip()
     
     return fixed_code
@@ -206,7 +206,7 @@ def main():
     st.title("Codkus")
     st.write("Generate high-quality Python code with AI assistance.")
 
-    # Set up the customization options
+    # set up the customization options
     st.sidebar.title("Customization")
     model = st.sidebar.selectbox(
         "Choose a model",
@@ -293,7 +293,7 @@ def main():
             st.session_state["fixed_code"] = fixed_code
             full_code = f"{fixed_code}\n\n{generated_test_cases}"
             st.session_state["full_code"] = full_code
-            st.experimental_rerun()  # Force rerun to update the UI immediately
+            st.experimental_rerun()
         else:
             st.warning("Please provide an error message to fix the code.")
 
@@ -308,7 +308,7 @@ def main():
     if st.session_state.get("code_confirmed", False):
         col1, col2 = st.columns(2)
         with col1:
-            # Download only the fixed code
+            # download only the fixed code
             st.download_button(
                 "Download Fixed Code",
                 st.session_state.get("fixed_code", ""),
@@ -316,9 +316,9 @@ def main():
                 mime="text/plain",
             )
         with col2:
-            # Download the full code (including testing)
+            # download the full code (including testing)
             st.download_button(
-                "Download Full Code",
+                "Download Full Code (Code + Test Cases)",
                 full_code,
                 file_name="full_code.py",
                 mime="text/plain",
